@@ -1,35 +1,26 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const routes = require('./routes/articles.routes');
-const Article = require('./models/articles.model')
+const methodOverride = require('method-override');
+const Article = require('./models/articles.model');
 
-// const server = express();
 mongoose.connect('mongodb://localhost/markdown_blog', { 
     useNewUrlParser: true,
-    useUnifiedTopology: true
+    useUnifiedTopology: true,
+    useCreateIndex: true,
 });
 
 const server = express();
 server.set('view engine', 'ejs');
-server.use(express.urlencoded({ extended: false }))
+server.use(express.urlencoded({ extended: false }));
+server.use(methodOverride('_method'));
 
 
 server.use('/articles', routes)
 
 
-server.get('/', (req, res) => {
-    const articles = [
-        {
-            title: 'Test Article',
-            createdAt: new Date(),
-            description: 'Test description'
-        },
-        {
-            title: 'Test Article',
-            createdAt: new Date(),
-            description: 'Test description'
-        }
-    ]
+server.get('/', async (req, res) => {
+    const articles = await Article.find().sort({ createdAt: 'desc' });
     res.render('articles/index', { articles: articles });
 })
 
